@@ -67,11 +67,6 @@ EXTRA_OEMAKE += " \
     "
 
 do_configure() {
-
-    echo "debug := n" > .config
-    echo "XSM_ENABLE := y" >> .config
-    echo "FLASK_ENABLE := y" >> .config
-
     cp "${WORKDIR}/defconfig" "${B}/xen/.config"
 
     # do configure
@@ -80,8 +75,8 @@ do_configure() {
 
 do_compile() {
     unset CFLAGS
-    oe_runmake -C xen olddefconfig
-    oe_runmake -C xen
+    XEN_CONFIG_EXPERT=y oe_runmake -C xen olddefconfig
+    XEN_CONFIG_EXPERT=y oe_runmake -C xen
 }
 
 do_install() {
