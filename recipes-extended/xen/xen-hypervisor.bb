@@ -66,8 +66,11 @@ EXTRA_OEMAKE += " \
     XEN_VENDORVERSION=-xc \
     "
 
+do_configure[depends] += "xen-xsm-policy:do_populate_sysroot"
+
 do_configure() {
     cp "${WORKDIR}/defconfig" "${B}/xen/.config"
+    cp ${STAGING_DIR_HOST}/usr/share/xen/xenrefpolicy/policy/policy.24 ${B}/
 
     # do configure
     oe_runconf

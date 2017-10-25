@@ -1,0 +1,26 @@
+From 9887a6b6f2be1ed673840acc4548b1f4dbca037c Mon Sep 17 00:00:00 2001
+From: Tamas K Lengyel <lengyelt@ainfosec.com>
+Date: Wed, 25 Oct 2017 13:40:31 -0600
+Subject: [PATCH] XSM: use bitbake provided policy as built-in policy
+
+---
+ xen/xsm/flask/Makefile | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/xen/xsm/flask/Makefile b/xen/xsm/flask/Makefile
+index e22ed7c03f..222f0e9b12 100644
+--- a/xen/xsm/flask/Makefile
++++ b/xen/xsm/flask/Makefile
+@@ -33,8 +33,7 @@ FLASK_BUILD_DIR := $(CURDIR)
+ POLICY_SRC := $(FLASK_BUILD_DIR)/xenpolicy-$(XEN_FULLVERSION)
+ 
+ policy.bin: FORCE
+-	$(MAKE) -f $(XEN_ROOT)/tools/flask/policy/Makefile.common -C $(XEN_ROOT)/tools/flask/policy FLASK_BUILD_DIR=$(FLASK_BUILD_DIR)
+-	cmp -s $(POLICY_SRC) $@ || cp $(POLICY_SRC) $@
++	cp $(XEN_ROOT)/policy.24 $(FLASK_BUILD_DIR)/$@
+ 
+ policy.c: policy.bin gen-policy.py
+ 	$(PYTHON) gen-policy.py < $< > $@
+-- 
+2.11.0
+

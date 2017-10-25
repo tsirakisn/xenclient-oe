@@ -59,6 +59,8 @@ SRC_URI_append = " \
     file://xenstat-disable-tmem-use.patch;patch=1 \
     file://acpi-slic-support.patch \
     file://xsm-for-vtd.patch \
+    file://XSM-add-config-option-to-override-bootloader-provide.patch;patch=1 \
+    file://XSM-use-bitbake-provided-policy-as-built-in-policy.patch;patch=1 \
     file://tboot-xen-evtlog-support.patch \
     file://disable-cpuid-hle-rtm.patch \
     file://allow-stubdoms-cacheattr-control.patch \
