@@ -21,6 +21,10 @@ python () {
 
 PROVIDES = "xen-hypervisor"
 
+DEPENDS += " \
+    gnu-efi-native \
+    "
+
 PACKAGES = " \
     ${PN}-dbg \
     xen-efi \
@@ -28,8 +32,8 @@ PACKAGES = " \
     "
 
 FILES_xen-efi = "\
-    ${exec_prefix}/lib64 \
-    ${exec_prefix}/lib64/xen* \
+    /boot/xen.efi \
+    /boot/xen.cfg \
     "
 
 PROVIDES_xen-efi = "xen-efi"
@@ -89,6 +93,10 @@ do_install() {
     install -d ${D}/boot
     oe_runmake DESTDIR=${D} install-xen
     ln -sf "`basename ${D}/boot/xen-*xc.gz`" ${D}/boot/xen-debug.gz
+    install -m 600 ${B}/xen/xen.efi ${D}/boot/
+    install -m 600 ${WORKDIR}/xen.cfg ${D}/boot/
+
+    rm -rf ${D}/usr/lib64
 }
 
 RPROVIDES_xen-efi = "xen-efi"
