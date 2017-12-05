@@ -19,6 +19,7 @@ SRC_URI += " \
             file://network_manual_download_win.ans \
 	    file://pxelinux.cfg \
 	    file://isolinux.cfg \
+	    file://grub.cfg \
 	    file://bootmsg.txt \
 "
 
@@ -120,7 +121,7 @@ do_post_rootfs_items() {
 	install -m 0644 ${WORKDIR}/bootmsg.txt ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}/iso/
 	install -m 0644 ${IMAGE_ROOTFS}/${datadir}/syslinux/isolinux.bin ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}/iso/
 	install -m 0644 ${WORKDIR}/isolinux.cfg ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}/iso/
-	install -m 0755 ${IMAGE_ROOTFS}/${bindir}/isohybrid ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}/iso/
+	install -m 0644 ${WORKDIR}/grub.cfg ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}/iso/
 
 	# Force the copy in case this has already run before
 	cp -f ${IMAGE_ROOTFS}/boot/tboot.gz ${DEPLOY_DIR_IMAGE}/
