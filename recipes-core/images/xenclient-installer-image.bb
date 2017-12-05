@@ -19,6 +19,7 @@ SRC_URI += " \
             file://network_manual_download_win.ans \
 	    file://pxelinux.cfg \
 	    file://isolinux.cfg \
+	    file://syslinux.cfg \
 	    file://bootmsg.txt \
 "
 
@@ -141,6 +142,12 @@ do_post_rootfs_items() {
 
 	# Add the microcode to the installer
 	cp -f ${IMAGE_ROOTFS}/boot/microcode_intel.bin ${DEPLOY_DIR_IMAGE}/microcode_intel.bin
+
+    # Copy syslinux efi files to later create efiboot.img from
+    install -m 0644 ${IMAGE_ROOTFS}/${datadir}/syslinux/BOOTX64.EFI ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}/iso/
+    install -m 0644 ${IMAGE_ROOTFS}/${datadir}/syslinux/ldlinux.e64 ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}/iso/
+    install -m 0644 ${IMAGE_ROOTFS}/${datadir}/syslinux/isohdpfx.bin ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}/iso/
+    install -m 0644 ${WORKDIR}/syslinux.cfg ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}/iso/
 }
 
 addtask post_rootfs_items after do_rootfs before do_build

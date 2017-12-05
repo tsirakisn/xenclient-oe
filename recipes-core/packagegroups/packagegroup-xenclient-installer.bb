@@ -48,6 +48,7 @@ RDEPENDS_${PN} = " \
     syslinux-isolinux \
     syslinux-mboot \
     syslinux-pxelinux \
+    syslinux-uefi \
     ethtool \
     rsyslog \
     xenclient-udev-force-discreet-net-to-eth0 \
