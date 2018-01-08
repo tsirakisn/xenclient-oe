@@ -11,7 +11,6 @@ SRC_URI[sha256sum] := "${XEN_SRC_SHA256SUM}"
 # by modifying the OpenXT-specific patches, not the XSA patches.
 
 SRC_URI_append = " \
-    file://xen.cfg \
     file://defconfig \
     file://config.patch \
     file://do-not-overwrite-cc-and-ld.patch \

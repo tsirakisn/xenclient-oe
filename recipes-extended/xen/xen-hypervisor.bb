@@ -33,7 +33,6 @@ PACKAGES = " \
 
 FILES_xen-efi = "\
     /boot/xen.efi \
-    /boot/xen.cfg \
     "
 
 PROVIDES_xen-efi = "xen-efi"
@@ -94,7 +93,6 @@ do_install() {
     oe_runmake DESTDIR=${D} install-xen
     ln -sf "`basename ${D}/boot/xen-*xc.gz`" ${D}/boot/xen-debug.gz
     install -m 600 ${B}/xen/xen.efi ${D}/boot/
-    install -m 600 ${WORKDIR}/xen.cfg ${D}/boot/
 
     rm -rf ${D}/usr/lib64
 }

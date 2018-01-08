@@ -1,0 +1,94 @@
+#! /bin/sh
+#
+# Copyright (c) 2018 AIS
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+# Script to copy boot files to ESP and create EFI boot entries
+#
+# Usage: setup-efi <ESP>
+
+if [ "$#" -ne 1 ]; then
+  echo "Usage: setup-efi <ESP>"
+  exit 1
+fi
+
+efibootmgr -v 1> /dev/null 2> /dev/null
+
+if [ "$?" != "0" ]; then
+    echo "Not an EFI system"
+    exit 1;
+fi
+
+ESP=$(fdisk -l $1 2>/dev/null | grep "EFI System" | awk '{print $1}')
+if [ -z ${ESP} ]; then
+    echo "No EFI System Partition on disk $1"
+    exit 1
+fi
+
+echo "Copying files to ESP at ${ESP}"
+
+mkdir -p /boot/efi
+
+mount ${ESP} /boot/efi 2> /dev/null
+if [ "$?" != "0" ]; then
+    echo "Couldn't mount ${1}, already mounted?"
+    exit 1;
+fi
+
+mkdir -p /boot/efi/EFI/openxt
+cp -f /boot/xen.efi \
+      /boot/shimx64.efi \
+      /boot/bzImage \
+      /boot/initramfs.gz \
+      /boot/microcode_intel.bin \
+      /etc/xen/xenrefpolicy/policy/policy.24 \
+      /boot/efi/EFI/openxt
+
+cp -f /usr/share/xenclient/bootloader/xen.cfg
+      /boot/efi/EFI/openxt/shimx64.cfg
+
+umount /boot/efi
+
+efibootmgr -w -L "OpenXT" -l "\EFI\openxt\shimx64.efi" -c -d ${1} --part 1 -e 3
+if [ "$?" != "0" ]; then
+    echo "Couldn't create EFI boot entry"
+    exit 1;
+fi
+
+efibootmgr -w -L "OpenXT (safe graphics)" -l "\EFI\openxt\shimx64.efi" -C -d ${1} --part 1 -e -u "openxt-support-safe-graphics"
+if [ "$?" != "0" ]; then
+    echo "Couldn't create EFI boot entry"
+    exit 1;
+fi
+
+efibootmgr -w -L "OpenXT (AMT)" -l "\EFI\openxt\shimx64.efi" -C -d ${1} --part 1 -e -u "openxt-support-amt"
+if [ "$?" != "0" ]; then
+    echo "Couldn't create EFI boot entry"
+    exit 1;
+fi
+
+efibootmgr -w -L "OpenXT (console)" -l "\EFI\openxt\shimx64.efi" -C -d ${1} --part 1 -e -u "openxt-support-console"
+if [ "$?" != "0" ]; then
+    echo "Couldn't create EFI boot entry"
+    exit 1;
+fi
+
+efibootmgr -w -L "OpenXT (console AMT)" -l "\EFI\openxt\shimx64.efi" -C -d ${1} --part 1 -e -u "openxt-support-console-amt"
+if [ "$?" != "0" ]; then
+    echo "Couldn't create EFI boot entry"
+    exit 1;
+fi

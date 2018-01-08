@@ -9,9 +9,11 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425
 SRC_URI = "file://enter-s3.sh \
 	   file://install-bootloader \
 	   file://install-bootloader-images \
+	   file://setup-efi \
 	   file://xenstore-init \
 	   file://netcon \
 	   file://grub.cfg \
+	   file://xen.cfg \
 	   file://unifont.pf2 \
 	   file://firstboot.sh \
 	   file://firstboot.initscript \
@@ -56,6 +58,8 @@ do_install () {
 	install -d ${D}/usr/share/xenclient
 	install -m 0755 ${WORKDIR}/enter-s3.sh \
 		${D}/usr/share/xenclient/enter-s3.sh
+	install -m 0755 ${WORKDIR}/setup-efi \
+		${D}/usr/share/xenclient/setup-efi
 	install -m 0755 ${WORKDIR}/install-bootloader \
 		${D}/usr/share/xenclient/install-bootloader
 	install -m 0755 ${WORKDIR}/install-bootloader-images \
@@ -74,6 +78,8 @@ do_install () {
 	# Useless cruft should be in installer
 	install -d ${D}/usr/share/xenclient/bootloader
 	install -m 0644 ${WORKDIR}/grub.cfg \
+		${D}/usr/share/xenclient/bootloader
+	install -m 0644 ${WORKDIR}/xen.cfg \
 		${D}/usr/share/xenclient/bootloader
 	install -m 0644 ${WORKDIR}/unifont.pf2 \
 		${D}/usr/share/xenclient/bootloader
