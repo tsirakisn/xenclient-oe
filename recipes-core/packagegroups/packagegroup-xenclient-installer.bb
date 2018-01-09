@@ -74,6 +74,8 @@ RDEPENDS_${PN} = " \
     tpm2-tools \
     efibootmgr \
     shim \
+    gptfdisk \
+    parted \
 "
 
 # open-iscsi-user \
