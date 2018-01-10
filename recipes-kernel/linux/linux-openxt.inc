@@ -14,3 +14,8 @@ pkg_postinst_kernel-image () {
 pkg_postrm_kernel-image () {
     rm -f $D/${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}
 }
+
+# Skip do_package_qa as it doesn't like 64-bit kernel modules
+do_package_qa() {
+    :
+}

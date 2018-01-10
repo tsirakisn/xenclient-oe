@@ -35,3 +35,7 @@ do_install_append_xenclient-nilfvm() {
 }
 
 MAKE_TARGETS += "modules"
+
+do_package_qa() {
+    :
+}

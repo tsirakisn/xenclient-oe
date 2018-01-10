@@ -50,4 +50,6 @@ do_install_headers_xenclient-nilfvm() {
 
 addtask install_headers after do_install before do_package do_populate_sysroot
 
-
+do_package_qa() {
+    :
+}

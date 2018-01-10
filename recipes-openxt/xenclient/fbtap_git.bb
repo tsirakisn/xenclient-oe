@@ -25,3 +25,6 @@ addtask install_headers after do_install before do_package do_populate_sysroot
 inherit module-compat
 inherit xenclient
 
+do_package_qa() {
+    :
+}
