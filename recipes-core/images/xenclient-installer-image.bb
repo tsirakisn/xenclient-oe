@@ -6,7 +6,7 @@
 
 include xenclient-image-common.inc
 
-COMPATIBLE_MACHINE = "(xenclient-dom0)"
+COMPATIBLE_MACHINE = "(openxt-installer)"
 IMAGE_INITSCRIPTS = "initscripts"
 
 PR = "r15"
