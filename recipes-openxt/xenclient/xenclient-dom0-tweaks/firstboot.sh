@@ -151,3 +151,10 @@ if [ -r ${INSTALL_CONF}/uivm-gconf,aes-xts-plain,256.key ] ; then
     mv ${INSTALL_CONF}/uivm-gconf,aes-xts-plain,256.key ${KEY_FOLDER}
     restore -r ${KEY_FOLDER}
 fi
+
+#------------------------------------------------------------------------------
+# Seal the system
+#------------------------------------------------------------------------------
+/etc/init.d/trousers stop
+/usr/sbin/seal-system -f -r /dev/xenclient/root
+/etc/init.d/trousers start
