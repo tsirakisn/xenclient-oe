@@ -39,7 +39,6 @@ IMAGE_INSTALL = "\
     packagegroup-base \
     packagegroup-xenclient-common \
     packagegroup-xenclient-installer \
-    kernel-module-e1000e \
     linux-firmware-iwlwifi \
     linux-firmware-bnx2 \
     linux-firmware-i915 \
