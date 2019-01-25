@@ -1,0 +1,16 @@
+Index: git/tools/libxl/libxl_dm.c
+===================================================================
+--- a/tools/libxl/libxl_dm.c
++++ b/tools/libxl/libxl_dm.c
+@@ -1978,8 +1978,9 @@ void libxl__spawn_stub_dm(libxl__egc *eg
+ 
+     libxl_domain_create_info_init(&dm_config->c_info);
+     dm_config->c_info.type = LIBXL_DOMAIN_TYPE_PV;
+-    dm_config->c_info.name = libxl__stub_dm_name(gc,
+-                                    libxl__domid_to_name(gc, guest_domid));
++	char * temp_name = libxl_domid_to_name(ctx, guest_domid);
++    dm_config->c_info.name = libxl__stub_dm_name(gc, temp_name);
++	free(temp_name);
+     /* When we are here to launch stubdom, ssidref is a valid value
+      * already, no need to parse it again.
+      */
