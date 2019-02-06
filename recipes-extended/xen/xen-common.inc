@@ -97,7 +97,6 @@ SRC_URI_append = " \
     file://tboot-measure-and-launch-from-xen-efi.patch \
     file://efi-load-options-no-default-image-name.patch \
     file://stacksize.patch \
-    file://dont-use-gc-ptr-track-for-name.patch \
 "
 
 COMPATIBLE_HOST = 'i686-oe-linux|(x86_64.*).*-linux|aarch64.*-linux'
