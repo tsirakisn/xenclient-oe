@@ -18,5 +18,39 @@
 #
 #############################################################################
 
-/usr/bin/uid	--	gen_context(system_u:object_r:uid_exec_t,s0)
-/etc/uid.conf	--	gen_context(system_u:object_r:uid_etc_t,s0)
+policy_module(quark, 0.1)
+
+type quark_t;
+type quark_exec_t;
+
+init_daemon_domain(quark_t, quark_exec_t);
+
+type quark_var_run_t;
+files_pid_file(quark_var_run_t)
+files_pid_filetrans(quark_t, quark_var_run_t, file)
+
+type quark_etc_t;
+files_config_file(quark_etc_t)
+
+allow quark_t quark_etc_t:file read_file_perms;
+allow quark_t quark_var_run_t:file manage_file_perms;
+
+dbus_connect_system_bus(quark_t)
+dbus_system_bus_client(quark_t)
+vusbd_dbus_chat(quark_t)
+surfman_dbus_chat(quark_t)
+xen_dbus_chat(quark_t)
+optional_policy('
+	hal_dbus_chat(quark_t)
+')
+input_server_dbus_chat(quark_t)
+rpcproxy_websockets_dbus_chat(quark_t)
+
+xc_files_rw_v4v_chr(quark_t)
+xc_getattr_service_disk_dir(quark_t)
+xc_search_storage(quark_t)
+
+xen_stream_connect_xenstore(quark_t)
+logging_send_syslog_msg(quark_t)
+
+corecmd_search_bin(quark_t)

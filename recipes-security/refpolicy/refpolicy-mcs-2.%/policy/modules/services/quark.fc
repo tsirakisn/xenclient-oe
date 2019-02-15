@@ -18,44 +18,5 @@
 #
 #############################################################################
 
-## <summary>uid daemon</summary>
-
-#######################################
-## <summary>
-##	Send messages to uid over dbus.
-## </summary>
-## <param name="domain">
-##	<summary>
-##	The type of the process sending messages to uid over dbus.
-##	</summary>
-## </param>
-#
-interface(`uid_dbus_send',`
-	gen_require(`
-		type uid_t;
-		class dbus send_msg;
-	')
-	
-	allow $1 uid_t:dbus	send_msg;
-')
-
-#######################################
-## <summary>
-##	Exchange messages with uid over dbus.
-## </summary>
-## <param name="domain">
-##	<summary>
-##	The type of the process chatting with uid over dbus.
-##	</summary>
-## </param>
-#
-interface(`uid_dbus_chat',`
-	gen_require(`
-		type uid_t;
-		class dbus send_msg;
-	')
-	
-	allow $1 uid_t:dbus	send_msg;
-	allow uid_t $1:dbus	send_msg;
-')
-
+/usr/bin/quark	          -- gen_context(system_u:object_r:quark_exec_t,s0)
+/var/run/quark\.pid       -- gen_context(system_u:object_r:quark_var_run_t,s0)
