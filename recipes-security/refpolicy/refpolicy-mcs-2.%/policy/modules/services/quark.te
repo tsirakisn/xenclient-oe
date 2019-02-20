@@ -35,3 +35,6 @@ allow quark_t self:process { rlimitinh setpgid setrlimit siginh };
 # the files are served from the dir provided on the cmdline.
 # quark chroots to that dir to handle relative pathnames.
 allow quark_t self:capability sys_chroot;
+
+# allow to signal itself (on shutdown)
+allow quark_t self:process signal;
