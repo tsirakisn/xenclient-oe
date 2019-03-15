@@ -1,0 +1,309 @@
+--- a/http.c
++++ b/http.c
+@@ -54,7 +54,7 @@ http_send_status(int fd, enum status s)
+ {
+ 	static char t[TIMESTAMP_LEN];
+ 
+-	if (dprintf(fd,
++	if (vsend(fd,
+ 	            "HTTP/1.1 %d %s\r\n"
+ 	            "Date: %s\r\n"
+ 	            "Connection: close\r\n"
+@@ -67,8 +67,8 @@ http_send_status(int fd, enum status s)
+ 	            s, status_str[s], timestamp(time(NULL), t),
+ 	            (s == S_METHOD_NOT_ALLOWED) ? "Allow: HEAD, GET\r\n" : "",
+ 	            s, status_str[s], s, status_str[s]) < 0) {
+-		return S_REQUEST_TIMEOUT;
+-	}
++        return S_REQUEST_TIMEOUT;
++    }
+ 
+ 	return s;
+ }
+@@ -488,33 +488,33 @@ http_send_response(int fd, struct reques
+ 				                        S_INTERNAL_SERVER_ERROR);
+ 			}
+ 
+-			if (dprintf(fd,
+-			            "HTTP/1.1 %d %s\r\n"
+-			            "Date: %s\r\n"
+-			            "Connection: close\r\n"
+-			            "Location: //%s%s%s%s%s%s\r\n"
+-			            "\r\n",
+-			            S_MOVED_PERMANENTLY,
+-			            status_str[S_MOVED_PERMANENTLY],
+-				    timestamp(time(NULL), t),
+-			            ipv6host ? "[" : "",
+-				    targethost,
+-			            ipv6host ? "]" : "", hasport ? ":" : "",
+-			            hasport ? s.port : "", tmptarget) < 0) {
++			if (vsend(fd,
++			          "HTTP/1.1 %d %s\r\n"
++			          "Date: %s\r\n"
++			          "Connection: close\r\n"
++			          "Location: //%s%s%s%s%s%s\r\n"
++			          "\r\n",
++			          S_MOVED_PERMANENTLY,
++			          status_str[S_MOVED_PERMANENTLY],
++				      timestamp(time(NULL), t),
++			          ipv6host ? "[" : "",
++				      targethost,
++			          ipv6host ? "]" : "", hasport ? ":" : "",
++			          hasport ? s.port : "", tmptarget) < 0) {
+ 				return S_REQUEST_TIMEOUT;
+ 			}
+ 		} else {
+ 			/* relative redirection URL */
+-			if (dprintf(fd,
+-			            "HTTP/1.1 %d %s\r\n"
+-			            "Date: %s\r\n"
+-			            "Connection: close\r\n"
+-			            "Location: %s\r\n"
+-			            "\r\n",
+-			            S_MOVED_PERMANENTLY,
+-			            status_str[S_MOVED_PERMANENTLY],
+-				    timestamp(time(NULL), t),
+-				    tmptarget) < 0) {
++			if (vsend(fd,
++			          "HTTP/1.1 %d %s\r\n"
++			          "Date: %s\r\n"
++			          "Connection: close\r\n"
++			          "Location: %s\r\n"
++			          "\r\n",
++			          S_MOVED_PERMANENTLY,
++			          status_str[S_MOVED_PERMANENTLY],
++				      timestamp(time(NULL), t),
++				      tmptarget) < 0) {
+ 				return S_REQUEST_TIMEOUT;
+ 			}
+ 		}
+@@ -556,13 +556,13 @@ http_send_response(int fd, struct reques
+ 
+ 		/* compare with last modification date of the file */
+ 		if (difftime(st.st_mtim.tv_sec, mktime(&tm)) <= 0) {
+-			if (dprintf(fd,
+-			            "HTTP/1.1 %d %s\r\n"
+-			            "Date: %s\r\n"
+-			            "Connection: close\r\n"
+-				    "\r\n",
+-			            S_NOT_MODIFIED, status_str[S_NOT_MODIFIED],
+-			            timestamp(time(NULL), t)) < 0) {
++			if (vsend(fd,
++			          "HTTP/1.1 %d %s\r\n"
++			          "Date: %s\r\n"
++			          "Connection: close\r\n"
++				      "\r\n",
++			          S_NOT_MODIFIED, status_str[S_NOT_MODIFIED],
++			          timestamp(time(NULL), t)) < 0) {
+ 				return S_REQUEST_TIMEOUT;
+ 			}
+ 		}
+@@ -597,16 +597,16 @@ http_send_response(int fd, struct reques
+ 
+ 		/* check range */
+ 		if (lower < 0 || upper < 0 || lower > upper) {
+-			if (dprintf(fd,
+-			            "HTTP/1.1 %d %s\r\n"
+-			            "Date: %s\r\n"
+-			            "Content-Range: bytes */%zu\r\n"
+-			            "Connection: close\r\n"
+-			            "\r\n",
+-			            S_RANGE_NOT_SATISFIABLE,
+-			            status_str[S_RANGE_NOT_SATISFIABLE],
+-			            timestamp(time(NULL), t),
+-			            st.st_size) < 0) {
++			if (vsend(fd,
++			          "HTTP/1.1 %d %s\r\n"
++			          "Date: %s\r\n"
++			          "Content-Range: bytes */%zu\r\n"
++			          "Connection: close\r\n"
++			          "\r\n",
++			          S_RANGE_NOT_SATISFIABLE,
++			          status_str[S_RANGE_NOT_SATISFIABLE],
++			          timestamp(time(NULL), t),
++			          st.st_size) < 0) {
+ 				return S_REQUEST_TIMEOUT;
+ 			}
+ 			return S_RANGE_NOT_SATISFIABLE;
+--- a/resp.c
++++ b/resp.c
+@@ -52,24 +52,24 @@ resp_dir(int fd, char *name, struct requ
+ 	}
+ 
+ 	/* send header as late as possible */
+-	if (dprintf(fd,
+-	            "HTTP/1.1 %d %s\r\n"
+-	            "Date: %s\r\n"
+-	            "Connection: close\r\n"
+-		    "Content-Type: text/html; charset=utf-8\r\n"
+-		    "\r\n",
+-	            S_OK, status_str[S_OK], timestamp(time(NULL), t)) < 0) {
++	if (vsend(fd,
++	          "HTTP/1.1 %d %s\r\n"
++	          "Date: %s\r\n"
++	          "Connection: close\r\n"
++		      "Content-Type: text/html; charset=utf-8\r\n"
++		      "\r\n",
++	           S_OK, status_str[S_OK], timestamp(time(NULL), t)) < 0) {
+ 		s = S_REQUEST_TIMEOUT;
+ 		goto cleanup;
+ 	}
+ 
+ 	if (r->method == M_GET) {
+ 		/* listing header */
+-		if (dprintf(fd,
+-		            "<!DOCTYPE html>\n<html>\n\t<head>"
+-		            "<title>Index of %s</title></head>\n"
+-		            "\t<body>\n\t\t<a href=\"..\">..</a>",
+-		            name) < 0) {
++		if (vsend(fd,
++		          "<!DOCTYPE html>\n<html>\n\t<head>"
++		          "<title>Index of %s</title></head>\n"
++		          "\t<body>\n\t\t<a href=\"..\">..</a>",
++		          name) < 0) {
+ 			s = S_REQUEST_TIMEOUT;
+ 			goto cleanup;
+ 		}
+@@ -82,18 +82,18 @@ resp_dir(int fd, char *name, struct requ
+ 			}
+ 
+ 			/* entry line */
+-			if (dprintf(fd, "<br />\n\t\t<a href=\"%s%s\">%s%s</a>",
+-			            e[i]->d_name,
+-			            (e[i]->d_type == DT_DIR) ? "/" : "",
+-			            e[i]->d_name,
+-			            suffix(e[i]->d_type)) < 0) {
++			if (vsend(fd, "<br />\n\t\t<a href=\"%s%s\">%s%s</a>",
++			          e[i]->d_name,
++			          (e[i]->d_type == DT_DIR) ? "/" : "",
++			          e[i]->d_name,
++			          suffix(e[i]->d_type)) < 0) {
+ 				s = S_REQUEST_TIMEOUT;
+ 				goto cleanup;
+ 			}
+ 		}
+ 
+ 		/* listing footer */
+-		if (dprintf(fd, "\n\t</body>\n</html>\n") < 0) {
++		if (vsend(fd, "\n\t</body>\n</html>\n") < 0) {
+ 			s = S_REQUEST_TIMEOUT;
+ 			goto cleanup;
+ 		}
+@@ -136,28 +136,28 @@ resp_file(int fd, char *name, struct req
+ 	range = r->field[REQ_RANGE][0];
+ 	s = range ? S_PARTIAL_CONTENT : S_OK;
+ 
+-	if (dprintf(fd,
+-	            "HTTP/1.1 %d %s\r\n"
+-	            "Date: %s\r\n"
+-	            "Connection: close\r\n"
+-	            "Last-Modified: %s\r\n"
+-	            "Expires: Wed, 1 Jan 2030 00:00:00 GMT\r\n"
+-	            "Content-Type: %s\r\n"
+-	            "Content-Length: %zu\r\n",
+-	            s, status_str[s], timestamp(time(NULL), t1),
+-	            timestamp(st->st_mtim.tv_sec, t2), mime,
+-	            upper - lower + 1) < 0) {
++	if (vsend(fd,
++	          "HTTP/1.1 %d %s\r\n"
++	          "Date: %s\r\n"
++	          "Connection: close\r\n"
++	          "Last-Modified: %s\r\n"
++	          "Content-Type: %s\r\n"
++	          "Content-Length: %zu\r\n",
++	          s, status_str[s], timestamp(time(NULL), t1),
++	          timestamp(st->st_mtim.tv_sec, t2), mime,
++	          upper - lower + 1) < 0) {
+ 		s = S_REQUEST_TIMEOUT;
+ 		goto cleanup;
+ 	}
++
+ 	if (range) {
+-		if (dprintf(fd, "Content-Range: bytes %zd-%zd/%zu\r\n",
+-		            lower, upper + (upper < 0), st->st_size) < 0) {
++		if (vsend(fd, "Content-Range: bytes %zd-%zd/%zu\r\n",
++		          lower, upper + (upper < 0), st->st_size) < 0) {
+ 			s = S_REQUEST_TIMEOUT;
+ 			goto cleanup;
+ 		}
+ 	}
+-	if (dprintf(fd, "\r\n") < 0) {
++	if (vsend(fd, "\r\n") < 0) {
+ 		s = S_REQUEST_TIMEOUT;
+ 		goto cleanup;
+ 	}
+@@ -166,6 +166,7 @@ resp_file(int fd, char *name, struct req
+ 		/* write data until upper bound is hit */
+ 		remaining = upper - lower + 1;
+ 
++        wait_fd_ready(fd, true, true);
+ 		while ((bread = fread(buf, 1, MIN(sizeof(buf),
+ 		                      (size_t)remaining), fp))) {
+ 			if (bread < 0) {
+@@ -173,8 +174,9 @@ resp_file(int fd, char *name, struct req
+ 			}
+ 			remaining -= bread;
+ 			p = buf;
++            wait_fd_ready(fd, true, true);
+ 			while (bread > 0) {
+-				bwritten = write(fd, p, bread);
++				bwritten = send(fd, p, bread, 0);
+ 				if (bwritten <= 0) {
+ 					return S_REQUEST_TIMEOUT;
+ 				}
+--- a/util.h
++++ b/util.h
+@@ -56,5 +56,6 @@ void *reallocarray(void *, size_t, size_
+ long long strtonum(const char *, long long, long long, const char **);
+ 
+ void wait_fd_ready(int, bool, bool);
++int vsend(int, char *, ...);
+ 
+ #endif /* UTIL_H */
+--- a/util.c
++++ b/util.c
+@@ -6,6 +6,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <sys/socket.h>
+ #include <sys/types.h>
+ #include <time.h>
+ 
+@@ -157,3 +158,36 @@ wait_fd_ready(int fd, bool read, bool wr
+ 
+ 	select(fd + 1, &readfds, &writefds, NULL, &tv);
+ }
++
++int
++vsend(int fd, char * fmt, ...) {
++    va_list argp;
++    static char * msg;
++    static int ret, len, remaining;
++    ssize_t size;
++
++    va_start(argp, fmt);
++    size = vsnprintf(NULL, 0, fmt, argp);
++    va_end(argp);
++
++    msg = malloc(size + 1);
++
++    va_start(argp, fmt);
++    vsnprintf(msg, size + 1, fmt, argp);
++    va_end(argp);
++
++    wait_fd_ready(fd, true, true);
++
++    remaining = size + 1;
++    while (remaining > 0) {
++        ret = send(fd, msg, remaining, 0);
++
++        if (ret < 0) {
++            return -1;
++        }
++
++        remaining -= ret;
++    }
++
++    return 0;
++}

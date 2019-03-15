@@ -109,7 +109,6 @@ RDEPENDS_${PN} = " \
     vusb-daemon \
     xenmgr-data \
     updatemgr \
-    uid \
     surfman \
     linuxfb-surfman-plugin \
     xenmgr \
@@ -118,6 +117,7 @@ RDEPENDS_${PN} = " \
     tpm2-tools \
     ${@bb.utils.contains('DISTRO_FEATURES', 'blktap2', 'xen-blktap xen-libblktapctl xen-libvhd', 'blktap3', d)} \
     pesign \
+    quark \
 "
 
 # OE upgrade - temporarly disabled:
