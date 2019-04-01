@@ -26,8 +26,10 @@ Could be upstreamed
 ################################################################################
 PATCHES
 ################################################################################
+Index: git/tools/libxl/libxl_blktap3.c
+===================================================================
 --- /dev/null
-+++ b/tools/libxl/libxl_blktap3.c
++++ git/tools/libxl/libxl_blktap3.c
 @@ -0,0 +1,140 @@
 +/*
 + * Copyright (C) 2012      Advanced Micro Devices
@@ -169,8 +171,10 @@ PATCHES
 + * indent-tabs-mode: nil
 + * End:
 + */
---- a/tools/libxl/libxl_device.c
-+++ b/tools/libxl/libxl_device.c
+Index: git/tools/libxl/libxl_device.c
+===================================================================
+--- git.orig/tools/libxl/libxl_device.c
++++ git/tools/libxl/libxl_device.c
 @@ -973,7 +973,9 @@ void libxl__initiate_device_generic_remo
      STATE_AO_GC(aodev->ao);
      xs_transaction_t t = 0;
@@ -193,8 +197,10 @@ PATCHES
          }
  
          rc = libxl__xs_transaction_commit(gc, &t);
---- a/tools/libxl/libxl_disk.c
-+++ b/tools/libxl/libxl_disk.c
+Index: git/tools/libxl/libxl_disk.c
+===================================================================
+--- git.orig/tools/libxl/libxl_disk.c
++++ git/tools/libxl/libxl_disk.c
 @@ -56,7 +56,7 @@ static void disk_eject_xswatch_callback(
              "/local/domain/%d/backend/%" TOSTRING(BACKEND_STRING_SIZE)
             "[a-z]/%*d/%*d",
@@ -290,8 +296,10 @@ PATCHES
      if (lock) libxl__unlock_domain_userdata(lock);
      if (rc) return AO_CREATE_FAIL(rc);
      return AO_INPROGRESS;
---- a/tools/libxl/Makefile
-+++ b/tools/libxl/Makefile
+Index: git/tools/libxl/Makefile
+===================================================================
+--- git.orig/tools/libxl/Makefile
++++ git/tools/libxl/Makefile
 @@ -20,18 +20,18 @@ LIBUUID_LIBS += -luuid
  endif
  
@@ -325,13 +333,15 @@ PATCHES
  endif
  
  ifeq ($(CONFIG_LIBNL),y)
---- a/tools/libxl/libxl_types_internal.idl
-+++ b/tools/libxl/libxl_types_internal.idl
-@@ -30,6 +30,7 @@ libxl__device_kind = Enumeration("device
-     (13, "VUART"),
+Index: git/tools/libxl/libxl_types_internal.idl
+===================================================================
+--- git.orig/tools/libxl/libxl_types_internal.idl
++++ git/tools/libxl/libxl_types_internal.idl
+@@ -31,6 +31,7 @@ libxl__device_kind = Enumeration("device
      (14, "PVCALLS"),
-     (15, "VWIF"),
-+    (16, "VBD3"),
+     (15, "VSND"),
+     (16, "VWIF"),
++    (17, "VBD3"),
      ])
  
  libxl__console_backend = Enumeration("console_backend", [
