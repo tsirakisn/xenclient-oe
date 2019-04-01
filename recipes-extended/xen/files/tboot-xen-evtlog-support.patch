@@ -31,8 +31,10 @@ INTERNAL DEPENDENCIES
 ################################################################################
 PATCHES
 ################################################################################
+Index: git/xen/include/public/txt.h
+===================================================================
 --- /dev/null
-+++ b/xen/include/public/txt.h
++++ git/xen/include/public/txt.h
 @@ -0,0 +1,67 @@
 +/******************************************************************************
 + * txt.h
@@ -101,10 +103,12 @@ PATCHES
 + * indent-tabs-mode: nil
 + * End:
 + */
---- a/xen/arch/x86/hvm/hypercall.c
-+++ b/xen/arch/x86/hvm/hypercall.c
-@@ -139,6 +139,9 @@ static const hypercall_table_t hvm_hyper
-     COMPAT_CALL(mmuext_op),
+Index: git/xen/arch/x86/hvm/hypercall.c
+===================================================================
+--- git.orig/xen/arch/x86/hvm/hypercall.c
++++ git/xen/arch/x86/hvm/hypercall.c
+@@ -143,6 +143,9 @@ static const hypercall_table_t hvm_hyper
+ #endif
      HYPERCALL(xenpmu_op),
      COMPAT_CALL(dm_op),
 +#ifdef CONFIG_TXT_OP
@@ -113,32 +117,38 @@ PATCHES
      HYPERCALL(arch_1)
  };
  
---- a/xen/arch/x86/hypercall.c
-+++ b/xen/arch/x86/hypercall.c
-@@ -68,6 +68,9 @@ const hypercall_args_t hypercall_args_ta
-     ARGS(v4v_op, 6),
-     ARGS(xenpmu_op, 2),
+Index: git/xen/arch/x86/hypercall.c
+===================================================================
+--- git.orig/xen/arch/x86/hypercall.c
++++ git/xen/arch/x86/hypercall.c
+@@ -72,6 +72,9 @@ const hypercall_args_t hypercall_args_ta
+     ARGS(hvm_op, 2),
      ARGS(dm_op, 3),
+ #endif
 +#ifdef CONFIG_TXT_OP
 +    ARGS(txt_op, 3),
 +#endif
      ARGS(mca, 1),
      ARGS(arch_1, 1),
  };
---- a/xen/arch/x86/pv/hypercall.c
-+++ b/xen/arch/x86/pv/hypercall.c
-@@ -81,6 +81,9 @@ const hypercall_table_t pv_hypercall_tab
-     HYPERCALL(v4v_op),
-     HYPERCALL(xenpmu_op),
+Index: git/xen/arch/x86/pv/hypercall.c
+===================================================================
+--- git.orig/xen/arch/x86/pv/hypercall.c
++++ git/xen/arch/x86/pv/hypercall.c
+@@ -85,6 +85,9 @@ const hypercall_table_t pv_hypercall_tab
+     HYPERCALL(hvm_op),
      COMPAT_CALL(dm_op),
+ #endif
 +#ifdef CONFIG_TXT_OP
 +    HYPERCALL(txt_op),
 +#endif
      HYPERCALL(mca),
      HYPERCALL(arch_1),
  };
---- a/xen/arch/x86/tboot.c
-+++ b/xen/arch/x86/tboot.c
+Index: git/xen/arch/x86/tboot.c
+===================================================================
+--- git.orig/xen/arch/x86/tboot.c
++++ git/xen/arch/x86/tboot.c
 @@ -3,6 +3,7 @@
  #include <xen/lib.h>
  #include <xen/sched.h>
@@ -171,7 +181,7 @@ PATCHES
  
      /* these will be needed by tboot_protect_mem_regions() and/or
         tboot_parse_dmar_table(), so get them now */
-@@ -548,6 +556,73 @@ int tboot_wake_ap(int apicid, unsigned l
+@@ -547,6 +555,73 @@ int tboot_wake_ap(int apicid, unsigned l
      return 1;
  }
  
@@ -245,8 +255,10 @@ PATCHES
  /*
   * Local variables:
   * mode: C
---- a/xen/include/asm-x86/tboot.h
-+++ b/xen/include/asm-x86/tboot.h
+Index: git/xen/include/asm-x86/tboot.h
+===================================================================
+--- git.orig/xen/include/asm-x86/tboot.h
++++ git/xen/include/asm-x86/tboot.h
 @@ -102,6 +102,15 @@ typedef struct __packed {
      uint32_t  flags;
      uint64_t  ap_wake_addr;      /* phys addr of kernel/VMM SIPI vector */
@@ -263,22 +275,26 @@ PATCHES
  } tboot_shared_t;
  
  #define TB_SHUTDOWN_REBOOT      0
---- a/xen/include/public/xen.h
-+++ b/xen/include/public/xen.h
+Index: git/xen/include/public/xen.h
+===================================================================
+--- git.orig/xen/include/public/xen.h
++++ git/xen/include/public/xen.h
 @@ -121,6 +121,7 @@ DEFINE_XEN_GUEST_HANDLE(xen_ulong_t);
- #define __HYPERVISOR_v4v_op               39 /* reserved for XenClient */
+ #define __HYPERVISOR_argo_op              39
  #define __HYPERVISOR_xenpmu_op            40
  #define __HYPERVISOR_dm_op                41
 +#define __HYPERVISOR_txt_op               42
  
  /* Architecture-specific hypercall definitions. */
  #define __HYPERVISOR_arch_0               48
---- a/xen/include/xen/hypercall.h
-+++ b/xen/include/xen/hypercall.h
-@@ -148,6 +148,11 @@ do_dm_op(
+Index: git/xen/include/xen/hypercall.h
+===================================================================
+--- git.orig/xen/include/xen/hypercall.h
++++ git/xen/include/xen/hypercall.h
+@@ -157,6 +157,11 @@ do_dm_op(
      unsigned int nr_bufs,
      XEN_GUEST_HANDLE_PARAM(xen_dm_op_buf_t) bufs);
-
+ 
 +#ifdef CONFIG_TXT_OP 
 +extern long
 +do_txt_op(unsigned int cmd, XEN_GUEST_HANDLE_PARAM(void) arg);
