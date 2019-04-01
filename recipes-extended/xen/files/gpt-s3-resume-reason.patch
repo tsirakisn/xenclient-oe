@@ -42,7 +42,7 @@ PATCHES
 +
  static void hvm_s3_resume(struct domain *d)
  {
-     if ( test_and_clear_bool(d->arch.hvm_domain.is_s3_suspended) )
+     if ( test_and_clear_bool(d->arch.hvm.is_s3_suspended) )
 @@ -4010,6 +4013,10 @@ static void hvm_s3_resume(struct domain
  
          for_each_vcpu( d, v )
@@ -71,18 +71,18 @@ PATCHES
 +/* Set power button status (necessary for proper win32 resume) */
 +void hvm_acpi_power_button_set_sts(struct domain *d)
 +{
-+    PMTState *s = &d->arch.hvm_domain.pl_time->vpmt;
++    PMTState *s = &d->arch.hvm.pl_time->vpmt;
 +    spin_lock(&s->lock);
-+    d->arch.hvm_domain.acpi.pm1a_sts |= PWRBTN_STS;
++    d->arch.hvm.acpi.pm1a_sts |= PWRBTN_STS;
 +    spin_unlock(&s->lock);
 +}
 +
 +/* Set rsm/wak_sts bit */
 +void hvm_acpi_set_wak_sts(struct domain *d)
 +{
-+    PMTState *s = &d->arch.hvm_domain.pl_time->vpmt;
++    PMTState *s = &d->arch.hvm.pl_time->vpmt;
 +    spin_lock(&s->lock);
-+    d->arch.hvm_domain.acpi.pm1a_sts |= WAK_STS;
++    d->arch.hvm.acpi.pm1a_sts |= WAK_STS;
 +    spin_unlock(&s->lock);
 +}
 +

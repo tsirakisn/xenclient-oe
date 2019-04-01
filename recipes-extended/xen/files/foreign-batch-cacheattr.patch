@@ -46,8 +46,10 @@ OpenXT Linux patch: privcmd-mmapnocache-ioctl.patch
 ################################################################################
 PATCHES 
 ################################################################################
---- a/tools/include/xen-sys/Linux/privcmd.h
-+++ b/tools/include/xen-sys/Linux/privcmd.h
+Index: git/tools/include/xen-sys/Linux/privcmd.h
+===================================================================
+--- git.orig/tools/include/xen-sys/Linux/privcmd.h
++++ git/tools/include/xen-sys/Linux/privcmd.h
 @@ -95,6 +95,11 @@ typedef struct privcmd_mmap_resource {
  	__u64 addr;
  } privcmd_mmap_resource_t;
@@ -60,16 +62,18 @@ PATCHES
  /*
   * @cmd: IOCTL_PRIVCMD_HYPERCALL
   * @arg: &privcmd_hypercall_t
-@@ -114,5 +119,7 @@ typedef struct privcmd_mmap_resource {
- 	_IOC(_IOC_NONE, 'P', 6, sizeof(domid_t))
- #define IOCTL_PRIVCMD_MMAP_RESOURCE				\
+@@ -116,5 +121,7 @@ typedef struct privcmd_mmap_resource {
  	_IOC(_IOC_NONE, 'P', 7, sizeof(privcmd_mmap_resource_t))
+ #define IOCTL_PRIVCMD_UNIMPLEMENTED				\
+ 	_IOC(_IOC_NONE, 'P', 0xFF, 0)
 +#define IOCTL_PRIVCMD_MMAPCACHEATTR                             \
 +	_IOC(_IOC_NONE, 'P', 200, sizeof(privcmd_mmapcacheattr_t))
  
  #endif /* __LINUX_PUBLIC_PRIVCMD_H__ */
---- a/tools/libs/foreignmemory/core.c
-+++ b/tools/libs/foreignmemory/core.c
+Index: git/tools/libs/foreignmemory/core.c
+===================================================================
+--- git.orig/tools/libs/foreignmemory/core.c
++++ git/tools/libs/foreignmemory/core.c
 @@ -125,6 +125,46 @@ void *xenforeignmemory_map(xenforeignmem
      return xenforeignmemory_map2(fmem, dom, NULL, prot, 0, num, arr, err);
  }
@@ -117,8 +121,10 @@ PATCHES
  int xenforeignmemory_unmap(xenforeignmemory_handle *fmem,
                             void *addr, size_t num)
  {
---- a/tools/libs/foreignmemory/include/xenforeignmemory.h
-+++ b/tools/libs/foreignmemory/include/xenforeignmemory.h
+Index: git/tools/libs/foreignmemory/include/xenforeignmemory.h
+===================================================================
+--- git.orig/tools/libs/foreignmemory/include/xenforeignmemory.h
++++ git/tools/libs/foreignmemory/include/xenforeignmemory.h
 @@ -120,6 +120,14 @@ void *xenforeignmemory_map2(xenforeignme
                              const xen_pfn_t arr[/*pages*/], int err[/*pages*/]);
  
@@ -134,8 +140,10 @@ PATCHES
   * Unmap a mapping previous created with xenforeignmemory_map().
   *
   * Returns 0 on success on failure sets errno and returns -1.
---- a/tools/libs/foreignmemory/libxenforeignmemory.map
-+++ b/tools/libs/foreignmemory/libxenforeignmemory.map
+Index: git/tools/libs/foreignmemory/libxenforeignmemory.map
+===================================================================
+--- git.orig/tools/libs/foreignmemory/libxenforeignmemory.map
++++ git/tools/libs/foreignmemory/libxenforeignmemory.map
 @@ -3,6 +3,7 @@ VERS_1.0 {
  		xenforeignmemory_open;
  		xenforeignmemory_close;
@@ -144,9 +152,11 @@ PATCHES
  		xenforeignmemory_unmap;
  	local: *; /* Do not expose anything by default */
  };
---- a/tools/libs/foreignmemory/linux.c
-+++ b/tools/libs/foreignmemory/linux.c
-@@ -141,13 +141,17 @@ out:
+Index: git/tools/libs/foreignmemory/linux.c
+===================================================================
+--- git.orig/tools/libs/foreignmemory/linux.c
++++ git/tools/libs/foreignmemory/linux.c
+@@ -159,13 +159,17 @@ out:
      return rc;
  }
  
@@ -168,7 +178,7 @@ PATCHES
      size_t i;
      int rc;
  
-@@ -159,6 +163,20 @@ void *osdep_xenforeignmemory_map(xenfore
+@@ -177,6 +181,20 @@ void *osdep_xenforeignmemory_map(xenfore
          return NULL;
      }
  
@@ -189,7 +199,7 @@ PATCHES
      ioctlx.num = num;
      ioctlx.dom = dom;
      ioctlx.addr = (unsigned long)addr;
-@@ -265,6 +283,27 @@ void *osdep_xenforeignmemory_map(xenfore
+@@ -283,6 +301,27 @@ void *osdep_xenforeignmemory_map(xenfore
      return addr;
  }
  
@@ -217,9 +227,11 @@ PATCHES
  int osdep_xenforeignmemory_unmap(xenforeignmemory_handle *fmem,
                                   void *addr, size_t num)
  {
---- a/tools/libs/foreignmemory/private.h
-+++ b/tools/libs/foreignmemory/private.h
-@@ -32,6 +32,11 @@ void *osdep_xenforeignmemory_map(xenfore
+Index: git/tools/libs/foreignmemory/private.h
+===================================================================
+--- git.orig/tools/libs/foreignmemory/private.h
++++ git/tools/libs/foreignmemory/private.h
+@@ -33,6 +33,11 @@ void *osdep_xenforeignmemory_map(xenfore
                                   uint32_t dom, void *addr,
                                   int prot, int flags, size_t num,
                                   const xen_pfn_t arr[num], int err[num]);
@@ -231,9 +243,11 @@ PATCHES
  int osdep_xenforeignmemory_unmap(xenforeignmemory_handle *fmem,
                                   void *addr, size_t num);
  
---- a/tools/libxc/include/xenctrl.h
-+++ b/tools/libxc/include/xenctrl.h
-@@ -1589,6 +1589,19 @@ int xc_tbuf_disable(xc_interface *xch);
+Index: git/tools/libxc/include/xenctrl.h
+===================================================================
+--- git.orig/tools/libxc/include/xenctrl.h
++++ git/tools/libxc/include/xenctrl.h
+@@ -1572,6 +1572,19 @@ int xc_tbuf_disable(xc_interface *xch);
   */
  int xc_tbuf_set_size(xc_interface *xch, unsigned long size);
  
@@ -253,8 +267,10 @@ PATCHES
  /**
   * This function retrieves the current size of the trace buffers.
   * Note that the size returned is in terms of bytes, not pages.
---- a/tools/libxc/xc_foreign_memory.c
-+++ b/tools/libxc/xc_foreign_memory.c
+Index: git/tools/libxc/xc_foreign_memory.c
+===================================================================
+--- git.orig/tools/libxc/xc_foreign_memory.c
++++ git/tools/libxc/xc_foreign_memory.c
 @@ -87,6 +87,23 @@ void *xc_map_foreign_bulk(xc_interface *
      return xenforeignmemory_map(xch->fmem, dom, prot, num, arr, err);
  }
