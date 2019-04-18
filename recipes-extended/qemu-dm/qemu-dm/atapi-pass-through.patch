@@ -1070,7 +1070,7 @@ Ross Philipson, <philipsonr@ainfosec.com>, 10/13/2016
 +
 +#define ATAPI_CDROM_PORT 5000
 +#define ARGO_ATAPI_PT_RING_SIZE \
-+  (ARGO_ROUNDUP((((4096)*64) - sizeof(argo_ring_t)-ARGO_ROUNDUP(1))))
++  (XEN_ARGO_ROUNDUP((((4096)*64) - sizeof(xen_argo_ring_t)-XEN_ARGO_ROUNDUP(1))))
 +
 +#define MAX_ARGO_MSG_SIZE (ARGO_ATAPI_PT_RING_SIZE)
 +
@@ -1168,11 +1168,11 @@ Ross Philipson, <philipsonr@ainfosec.com>, 10/13/2016
 +        return -1;
 +    }
 +
-+    pts->local_addr.port = ARGO_PORT_NONE;
-+    pts->local_addr.domain = ARGO_DOMID_ANY;
++    pts->local_addr.aport = XEN_ARGO_PORT_NONE;
++    pts->local_addr.domain_id = XEN_ARGO_DOMID_ANY;
 +
-+    pts->remote_addr.port = ATAPI_CDROM_PORT;
-+    pts->remote_addr.domain = 0;
++    pts->remote_addr.aport = ATAPI_CDROM_PORT;
++    pts->remote_addr.domain_id = 0;
 +
 +    PT_DEBUG("setting argo ring size...\n");
 +    ioctl(pts->argo_fd, ARGOIOCSETRINGSIZE, &argo_ring_size);
