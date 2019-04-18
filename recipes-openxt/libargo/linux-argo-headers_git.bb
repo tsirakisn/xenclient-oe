@@ -18,7 +18,7 @@ do_compile() {
 }
 
 do_install(){
-    install -d ${D}${includedir}/include/linux
+    install -d ${D}${includedir}/linux
     install ${S}/include/linux/argo_dev.h ${D}${includedir}/linux/
 }
 

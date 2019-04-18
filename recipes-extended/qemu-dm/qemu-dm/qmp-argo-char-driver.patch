@@ -51,7 +51,7 @@
 +#define ARGO_QH_PORT 5100
 +#define ARGO_CHARDRV_PORT 15100
 +#define ARGO_CHARDRV_RING_SIZE \
-+  (ARGO_ROUNDUP((((4096)*4) - sizeof(argo_ring_t)-ARGO_ROUNDUP(1))))
++  (XEN_ARGO_ROUNDUP((((4096)*4) - sizeof(xen_argo_ring_t)-XEN_ARGO_ROUNDUP(1))))
 +
 +#define ARGO_CHARDRV_NAME  "[argo-chardrv]"
 +
@@ -255,10 +255,10 @@
 +    uint32_t argo_ring_size = ARGO_CHARDRV_RING_SIZE;
 +    int fd = -1;
 +
-+    s->local_addr.port = argo->localport;
-+    s->local_addr.domain = ARGO_DOMID_ANY;
-+    s->remote_addr.port = argo->port;
-+    s->remote_addr.domain = argo->domid;
++    s->local_addr.aport = argo->localport;
++    s->local_addr.domain_id = XEN_ARGO_DOMID_ANY;
++    s->remote_addr.aport = argo->port;
++    s->remote_addr.domain_id = argo->domid;
 +    s->stream = argo->stream;
 +
 +    fd = argo_socket(s->stream ? SOCK_STREAM : SOCK_DGRAM);

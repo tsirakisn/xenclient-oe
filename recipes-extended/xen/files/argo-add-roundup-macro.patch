@@ -1,0 +1,134 @@
+--- a/xen/common/argo.c
++++ b/xen/common/argo.c
+@@ -50,16 +50,13 @@ CHECK_argo_send_addr;
+ #define MAX_NOTIFY_COUNT                256U
+ #define MAX_PENDING_PER_RING             32U
+ 
+-/* All messages on the ring are padded to a multiple of the slot size. */
+-#define ROUNDUP_MESSAGE(a) ROUNDUP((a), XEN_ARGO_MSG_SLOT_SIZE)
+-
+ /* The maximum size of a message that may be sent on the largest Argo ring. */
+ #define MAX_ARGO_MESSAGE_SIZE ((XEN_ARGO_MAX_RING_SIZE) - \
+-        (sizeof(struct xen_argo_ring_message_header)) - ROUNDUP_MESSAGE(1))
++        (sizeof(struct xen_argo_ring_message_header)) - XEN_ARGO_ROUNDUP(1))
+ 
+ /* Number of PAGEs needed to hold a ring of a given size in bytes */
+ #define NPAGES_RING(ring_len) \
+-    (ROUNDUP((ROUNDUP_MESSAGE(ring_len) + sizeof(xen_argo_ring_t)), PAGE_SIZE) \
++    (ROUNDUP((XEN_ARGO_ROUNDUP(ring_len) + sizeof(xen_argo_ring_t)), PAGE_SIZE) \
+      >> PAGE_SHIFT)
+ 
+ DEFINE_XEN_GUEST_HANDLE(xen_argo_addr_t);
+@@ -657,7 +654,7 @@ get_sanitized_ring(const struct domain *
+ 
+     ring->tx_ptr = ring_info->tx_ptr;
+ 
+-    rx_ptr = ROUNDUP_MESSAGE(rx_ptr);
++    rx_ptr = XEN_ARGO_ROUNDUP(rx_ptr);
+     if ( rx_ptr >= ring_info->len )
+         rx_ptr = 0;
+ 
+@@ -688,7 +685,7 @@ ringbuf_payload_space(const struct domai
+     /*
+      * rx_ptr == tx_ptr means that the ring has been emptied.
+      * See message size checking logic in the entry to ringbuf_insert which
+-     * ensures that there is always one message slot of size ROUNDUP_MESSAGE(1)
++     * ensures that there is always one message slot of size XEN_ARGO_ROUNDUP(1)
+      * left available, preventing a ring from being entirely filled.
+      * This ensures that matching ring indexes always indicate an empty ring
+      * and never a full one.
+@@ -721,7 +718,7 @@ ringbuf_payload_space(const struct domai
+      * the simple subtraction here works to return the aligned value needed:
+      */
+     ret -= sizeof(struct xen_argo_ring_message_header);
+-    ret -= ROUNDUP_MESSAGE(1);
++    ret -= XEN_ARGO_ROUNDUP(1);
+ 
+     return (ret < 0) ? 0 : ret;
+ }
+@@ -807,7 +804,7 @@ ringbuf_insert(const struct domain *d, s
+      * iov_count has already verified: len <= MAX_ARGO_MESSAGE_SIZE.
+      */
+     if ( ring_info->len <= (sizeof(struct xen_argo_ring_message_header) +
+-                            ROUNDUP_MESSAGE(len)) )
++                            XEN_ARGO_ROUNDUP(len)) )
+         return -EMSGSIZE;
+ 
+     ret = get_sanitized_ring(d, &ring, ring_info);
+@@ -831,7 +828,7 @@ ringbuf_insert(const struct domain *d, s
+      * Size bounds check against currently available space in the ring.
+      * Again: the message must not fill the ring leaving no space remaining.
+      */
+-    if ( (ROUNDUP_MESSAGE(len) +
++    if ( (XEN_ARGO_ROUNDUP(len) +
+             sizeof(struct xen_argo_ring_message_header)) >= sp )
+     {
+         argo_dprintk("EAGAIN\n");
+@@ -848,7 +845,7 @@ ringbuf_insert(const struct domain *d, s
+      * and the message header is 16 bytes long.
+      */
+     BUILD_BUG_ON(
+-        sizeof(struct xen_argo_ring_message_header) != ROUNDUP_MESSAGE(1));
++        sizeof(struct xen_argo_ring_message_header) != XEN_ARGO_ROUNDUP(1));
+ 
+     /*
+      * First data write into the destination ring: fixed size, message header.
+@@ -979,7 +976,7 @@ ringbuf_insert(const struct domain *d, s
+      * Finished writing data from all iovs into the ring: now need to round up
+      * tx_ptr to align to the next message boundary, and then wrap if necessary.
+      */
+-    ring.tx_ptr = ROUNDUP_MESSAGE(ring.tx_ptr);
++    ring.tx_ptr = XEN_ARGO_ROUNDUP(ring.tx_ptr);
+ 
+     if ( ring.tx_ptr >= ring_info->len )
+         ring.tx_ptr -= ring_info->len;
+@@ -1380,7 +1377,7 @@ fill_ring_data(const struct domain *curr
+ 
+         ent.max_message_size = ring_info->len -
+                                    sizeof(struct xen_argo_ring_message_header) -
+-                                   ROUNDUP_MESSAGE(1);
++                                   XEN_ARGO_ROUNDUP(1);
+ 
+         if ( ring_info->id.partner_id == XEN_ARGO_DOMID_ANY )
+             ent.flags |= XEN_ARGO_RING_SHARED;
+@@ -1664,9 +1661,9 @@ register_ring(struct domain *currd,
+      * The above determines the minimum acceptable ring size.
+      */
+     if ( (reg.len < (sizeof(struct xen_argo_ring_message_header)
+-                      + ROUNDUP_MESSAGE(1) + ROUNDUP_MESSAGE(1))) ||
++                      + XEN_ARGO_ROUNDUP(1) + XEN_ARGO_ROUNDUP(1))) ||
+          (reg.len > XEN_ARGO_MAX_RING_SIZE) ||
+-         (reg.len != ROUNDUP_MESSAGE(reg.len)) ||
++         (reg.len != XEN_ARGO_ROUNDUP(reg.len)) ||
+          (NPAGES_RING(reg.len) != npage) ||
+          (reg.pad != 0) )
+         return -EINVAL;
+@@ -1830,14 +1827,14 @@ register_ring(struct domain *currd,
+     private_tx_ptr = read_atomic(&ringp->tx_ptr);
+ 
+     if ( (private_tx_ptr >= reg.len) ||
+-         (ROUNDUP_MESSAGE(private_tx_ptr) != private_tx_ptr) )
++         (XEN_ARGO_ROUNDUP(private_tx_ptr) != private_tx_ptr) )
+     {
+         /*
+          * Since the ring is a mess, attempt to flush the contents of it
+          * here by setting the tx_ptr to the next aligned message slot past
+          * the latest rx_ptr we have observed. Handle ring wrap correctly.
+          */
+-        private_tx_ptr = ROUNDUP_MESSAGE(read_atomic(&ringp->rx_ptr));
++        private_tx_ptr = XEN_ARGO_ROUNDUP(read_atomic(&ringp->rx_ptr));
+ 
+         if ( private_tx_ptr >= reg.len )
+             private_tx_ptr = 0;
+--- a/xen/include/public/argo.h
++++ b/xen/include/public/argo.h
+@@ -108,7 +108,9 @@ typedef struct xen_argo_unregister_ring
+ } xen_argo_unregister_ring_t;
+ 
+ /* Messages on the ring are padded to a multiple of this size. */
++#define ROUNDUP(x, a) (((x) + (a) - 1) & ~((a) - 1))
+ #define XEN_ARGO_MSG_SLOT_SIZE 0x10
++#define XEN_ARGO_ROUNDUP(a) ROUNDUP((a), XEN_ARGO_MSG_SLOT_SIZE)
+ 
+ /*
+  * Notify flags

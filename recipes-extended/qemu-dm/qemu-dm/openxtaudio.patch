@@ -909,7 +909,7 @@ PATCHES
 +{
 +    // Setup
 +    openxt_debug_init();
-+    conn = openxt_argo_open(ARGO_PORT_NONE, ARGO_DOMID_ANY, OPENXT_AUDIO_PORT, 0);
++    conn = openxt_argo_open(XEN_ARGO_PORT_NONE, XEN_ARGO_DOMID_ANY, OPENXT_AUDIO_PORT, 0);
 +    openxt_assert(conn != NULL, NULL);
 +
 +    // Cleanup memory(safety)
@@ -1560,15 +1560,15 @@ PATCHES
 +/// The following provides suggested arguments for this function:
 +///
 +/// Clients
-+/// - local port = ARGO_PORT_NONE
-+/// - local domid = ARGO_DOMID_ANY
++/// - local port = XEN_ARGO_PORT_NONE
++/// - local domid = XEN_ARGO_DOMID_ANY
 +/// - remote port = <port #>
 +/// - remote domid = <server domid, likely == 0>
 +///
 +/// Servers
 +/// - local port = <port #>
-+/// - local domid = ARGO_DOMID_ANY
-+/// - remote port = ARGO_PORT_NONE
++/// - local domid = XEN_ARGO_DOMID_ANY
++/// - remote port = XEN_ARGO_PORT_NONE
 +/// - remote domid = <client domid>
 +///
 +/// @param lport local port
@@ -1587,17 +1587,17 @@ PATCHES
 +    // Initialize the connection for safety.
 +    conn->fd = -1;
 +    conn->connected = false;
-+    conn->local_addr.port = lport;
-+    conn->local_addr.domain = ldomid;
-+    conn->remote_addr.port = rport;
-+    conn->remote_addr.domain = rdomid;
++    conn->local_addr.aport = lport;
++    conn->local_addr.domain_id = ldomid;
++    conn->remote_addr.aport = rport;
++    conn->remote_addr.domain_id = rdomid;
 +
 +    // Attempt to open an Argo socket
 +    if((conn->fd = argo_socket(SOCK_DGRAM)) <= 0)
 +        goto failure;
 +
 +    // Bind to Argo
-+    if(argo_bind(conn->fd, &conn->local_addr, conn->remote_addr.domain) != 0)
++    if(argo_bind(conn->fd, &conn->local_addr, conn->remote_addr.domain_id) != 0)
 +        goto failure;
 +
 +    // We are now connected

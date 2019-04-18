@@ -380,8 +380,8 @@ PATCHES
 +        return NULL;
 +    }
 +
-+    s->peer.port = DMBUS_BASE_PORT + service;
-+    s->peer.domain = 0; /* Dom0 */
++    s->peer.aport = DMBUS_BASE_PORT + service;
++    s->peer.domain_id = 0; /* Dom0 */
 +
 +    rc = argo_connect(s->fd, &s->peer);
 +    if (rc == -1) {
