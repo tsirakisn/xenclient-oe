@@ -69,8 +69,7 @@ PATCHES
 +
  void xenbus_dev_changed(const char *node, struct xen_bus_type *bus)
  {
--	int exists, rootlen;
-+	int exists, nodelen, rootlen;
+ 	int exists, rootlen;
  	struct xenbus_device *dev;
  	char type[XEN_BUS_ID_SIZE];
 -	const char *p, *root;
@@ -78,19 +77,11 @@ PATCHES
  
  	if (char_count(node, '/') < 2)
  		return;
-@@ -570,6 +594,7 @@ void xenbus_dev_changed(const char *node
- 	}
- 
- 	/* backend/<type>/... or device/<type>/... */
-+	nodelen = strnlen(node, INT_MAX);
- 	p = strchr(node, '/') + 1;
- 	snprintf(type, XEN_BUS_ID_SIZE, "%.*s", (int)strcspn(p, "/"), p);
- 	type[XEN_BUS_ID_SIZE-1] = '\0';
-@@ -581,12 +606,20 @@ void xenbus_dev_changed(const char *node
+@@ -581,12 +605,20 @@ void xenbus_dev_changed(const char *node
  	if (!root)
  		return;
  
-+	ending = kasprintf(GFP_KERNEL, "%.*s", nodelen - rootlen, node + rootlen);
++	ending = kasprintf(GFP_KERNEL, "%.*s", strlen(node)-rootlen, node + rootlen);
 +	if (!ending)
 +		return;
  	dev = xenbus_device_find(root, &bus->bus);
