@@ -84,10 +84,10 @@ post_rootfs_shell_commands() {
     touch ${IMAGE_ROOTFS}/etc/xen/xl.conf
 
     # Remove network modules except netfront
-    for x in `find ${IMAGE_ROOTFS}/lib/modules -name *.ko | grep drivers/net | grep -v xen-netfront`; do
-        pkg="kernel-module-`basename $x .ko | sed s/_/-/g`"
-        opkg ${IPKG_ARGS} -force-depends remove $pkg
-    done
+    #for x in `find ${IMAGE_ROOTFS}/lib/modules -name *.ko | grep drivers/net | grep -v xen-netfront`; do
+    #    pkg="kernel-module-`basename $x .ko | sed s/_/-/g`"
+    #    opkg ${IPKG_ARGS} -force-depends remove $pkg
+    #done
 
     # Write coredumps in /var/cores
     echo 'kernel.core_pattern = /var/cores/%e-%t.%p.core' >> ${IMAGE_ROOTFS}/etc/sysctl.conf
