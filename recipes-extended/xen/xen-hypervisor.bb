@@ -77,6 +77,9 @@ do_configure() {
     #same hypercall headers
     echo "CONFIG_TXT_OP=y" >> "${B}/xen/.config"
 
+    # TODO: move me to a better place (probably a patch)
+    echo "CONFIG_ARGO=y" >> "${B}/xen/.config"
+
     # do configure
     oe_runconf
 }
