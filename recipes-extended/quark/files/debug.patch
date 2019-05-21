@@ -20,6 +20,15 @@
  
  	return s;
  }
+@@ -106,7 +106,7 @@ http_get_request(int fd, struct request
+ 	 * receive header
+ 	 */
+ 	for (hlen = 0; ;) {
+-		if ((off = read(fd, h + hlen, sizeof(h) - hlen)) < 0) {
++		if ((off = recv(fd, h + hlen, sizeof(h) - hlen, 0)) < 0) {
+ 			return http_send_status(fd, S_REQUEST_TIMEOUT);
+ 		} else if (off == 0) {
+ 			break;
 @@ -488,33 +488,33 @@ http_send_response(int fd, struct reques
  				                        S_INTERNAL_SERVER_ERROR);
  			}
@@ -236,7 +245,7 @@
  		/* write data until upper bound is hit */
  		remaining = upper - lower + 1;
  
-+        wait_fd_ready(fd, true, true);
++        //wait_fd_ready(fd, true, true);
  		while ((bread = fread(buf, 1, MIN(sizeof(buf),
  		                      (size_t)remaining), fp))) {
  			if (bread < 0) {
@@ -244,7 +253,7 @@
  			}
  			remaining -= bread;
  			p = buf;
-+            wait_fd_ready(fd, true, true);
++            //wait_fd_ready(fd, true, true);
  			while (bread > 0) {
 -				bwritten = write(fd, p, bread);
 +				bwritten = send(fd, p, bread, 0);
@@ -292,7 +301,7 @@
 +    vsnprintf(msg, size + 1, fmt, argp);
 +    va_end(argp);
 +
-+    wait_fd_ready(fd, true, true);
++    //wait_fd_ready(fd, true, true);
 +
 +    remaining = size + 1;
 +    while (remaining > 0) {
