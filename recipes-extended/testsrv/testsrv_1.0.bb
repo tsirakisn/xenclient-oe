@@ -2,7 +2,7 @@ SUMMARY = "Test server/client for testing argo comms"
 LICENSE="GPLv3"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d41d8cd98f00b204e9800998ecf8427e"
 
-SRCREV = "${AUTOREV}"
+SRCREV = "22f14b75b9d78eb0869c895e83a7e8c0e7dfe478"
 
 S = "${WORKDIR}/git/"
 

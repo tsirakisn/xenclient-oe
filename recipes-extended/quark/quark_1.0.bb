@@ -12,8 +12,6 @@ S = "${WORKDIR}/git/"
 
 SRC_URI = "git://git.suckless.org/quark;protocol=ssh;branch=master \
            file://add-POST-and-v4v-support.patch \
-           file://argo.patch \
-           file://post-fixed.patch \
            file://quark.initscript \
         "
 
