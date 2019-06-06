@@ -1,0 +1,217 @@
+--- a/xen/common/argo.c
++++ b/xen/common/argo.c
+@@ -324,7 +324,7 @@ static DEFINE_RWLOCK(L1_global_argo_rwlo
+ #undef ARGO_DEBUG
+ 
+ #ifdef ARGO_DEBUG
+-#define argo_dprintk(format, args...) printk("argo: " format, ## args )
++#define argo_dprintk(format, args...) printk("xenargo: " format, ## args )
+ #else
+ #define argo_dprintk(format, ... ) ((void)0)
+ #endif
+@@ -776,7 +776,7 @@ static int
+ ringbuf_insert(const struct domain *d, struct argo_ring_info *ring_info,
+                const struct argo_ring_id *src_id, xen_argo_iov_t *iovs,
+                unsigned int niov, uint32_t message_type,
+-               unsigned long *out_len)
++               unsigned long *bytes_sent, unsigned long *msg_len)
+ {
+     xen_argo_ring_t ring;
+     struct xen_argo_ring_message_header mh = { };
+@@ -797,6 +797,8 @@ ringbuf_insert(const struct domain *d, s
+     if ( ret )
+         return ret;
+ 
++    *msg_len = len;
++
+     /*
+      * Upper bound check the message len against the ring size.
+      * The message must not fill the ring; there must be at least one slot
+@@ -811,7 +813,7 @@ ringbuf_insert(const struct domain *d, s
+     if ( ret )
+         return ret;
+ 
+-    argo_dprintk("ring.tx_ptr=%u ring.rx_ptr=%u ring len=%u"
++    argo_dprintk("start: ring.tx_ptr=%u ring.rx_ptr=%u ring len=%u"
+                  " ring_info->tx_ptr=%u\n",
+                  ring.tx_ptr, ring.rx_ptr, ring_info->len, ring_info->tx_ptr);
+ 
+@@ -857,8 +859,7 @@ ringbuf_insert(const struct domain *d, s
+                                &mh, NULL_hnd, sizeof(mh));
+     if ( ret )
+     {
+-        gprintk(XENLOG_ERR,
+-                "argo: failed to write message header to ring (vm%u:%x vm%u)\n",
++        argo_dprintk("argo: failed to write message header to ring (vm%u:%x vm%u)\n",
+                 ring_info->id.domain_id, ring_info->id.aport,
+                 ring_info->id.partner_id);
+ 
+@@ -869,6 +870,10 @@ ringbuf_insert(const struct domain *d, s
+     if ( ring.tx_ptr == ring_info->len )
+         ring.tx_ptr = 0;
+ 
++    argo_dprintk("post_header: ring.tx_ptr=%u ring.rx_ptr=%u ring len=%u"
++                 " ring_info->tx_ptr=%u\n",
++                 ring.tx_ptr, ring.rx_ptr, ring_info->len, ring_info->tx_ptr);
++
+     for ( piov = iovs; niov--; piov++ )
+     {
+         XEN_GUEST_HANDLE(uint8) buf_hnd = piov->iov_hnd;
+@@ -877,8 +882,7 @@ ringbuf_insert(const struct domain *d, s
+         /* If no data is provided in this iov, moan and skip on to the next */
+         if ( !iov_len )
+         {
+-            gprintk(XENLOG_WARNING,
+-                    "argo: no data iov_len=0 iov_hnd=%p ring (vm%u:%x vm%u)\n",
++            argo_dprintk("argo: no data iov_len=0 iov_hnd=%p ring (vm%u:%x vm%u)\n",
+                     buf_hnd.p, ring_info->id.domain_id, ring_info->id.aport,
+                     ring_info->id.partner_id);
+ 
+@@ -887,8 +891,7 @@ ringbuf_insert(const struct domain *d, s
+ 
+         if ( unlikely(!guest_handle_okay(buf_hnd, iov_len)) )
+         {
+-            gprintk(XENLOG_ERR,
+-                    "argo: bad iov handle [%p, %u] (vm%u:%x vm%u)\n",
++            argo_dprintk("argo: bad iov handle [%p, %u] (vm%u:%x vm%u)\n",
+                     buf_hnd.p, iov_len,
+                     ring_info->id.domain_id, ring_info->id.aport,
+                     ring_info->id.partner_id);
+@@ -914,8 +917,7 @@ ringbuf_insert(const struct domain *d, s
+                                        NULL, buf_hnd, sp);
+             if ( ret )
+             {
+-                gprintk(XENLOG_ERR,
+-                        "argo: failed to copy {%p, %d} (vm%u:%x vm%u)\n",
++                argo_dprintk("argo: failed to copy {%p, %d} (vm%u:%x vm%u)\n",
+                         buf_hnd.p, sp,
+                         ring_info->id.domain_id, ring_info->id.aport,
+                         ring_info->id.partner_id);
+@@ -927,6 +929,10 @@ ringbuf_insert(const struct domain *d, s
+             iov_len -= sp;
+             guest_handle_add_offset(buf_hnd, sp);
+ 
++            argo_dprintk("wrap_write: ring.tx_ptr=%u ring.rx_ptr=%u ring len=%u"
++                 " ring_info->tx_ptr=%u\n",
++                 ring.tx_ptr, ring.rx_ptr, ring_info->len, ring_info->tx_ptr);
++
+             ASSERT(iov_len <= ring_info->len);
+         }
+ 
+@@ -958,8 +964,7 @@ ringbuf_insert(const struct domain *d, s
+                                    NULL, buf_hnd, iov_len);
+         if ( ret )
+         {
+-            gprintk(XENLOG_ERR,
+-                    "argo: failed to copy [%p, %u] (vm%u:%x vm%u)\n",
++            argo_dprintk("argo: failed to copy [%p, %u] (vm%u:%x vm%u)\n",
+                     buf_hnd.p, iov_len, ring_info->id.domain_id,
+                     ring_info->id.aport, ring_info->id.partner_id);
+ 
+@@ -970,6 +975,11 @@ ringbuf_insert(const struct domain *d, s
+ 
+         if ( ring.tx_ptr == ring_info->len )
+             ring.tx_ptr = 0;
++
++        argo_dprintk("write_rem: ring.tx_ptr=%u ring.rx_ptr=%u ring len=%u"
++                 " ring_info->tx_ptr=%u\n",
++                 ring.tx_ptr, ring.rx_ptr, ring_info->len, ring_info->tx_ptr);
++
+     }
+ 
+     /*
+@@ -981,6 +991,10 @@ ringbuf_insert(const struct domain *d, s
+     if ( ring.tx_ptr >= ring_info->len )
+         ring.tx_ptr -= ring_info->len;
+ 
++    argo_dprintk("finalize: ring.tx_ptr=%u ring.rx_ptr=%u ring len=%u"
++                 " ring_info->tx_ptr=%u\n",
++                 ring.tx_ptr, ring.rx_ptr, ring_info->len, ring_info->tx_ptr);
++
+     update_tx_ptr(d, ring_info, ring.tx_ptr);
+ 
+     /*
+@@ -993,7 +1007,7 @@ ringbuf_insert(const struct domain *d, s
+      * versus performance cost could be added to decide that here.
+      */
+ 
+-    *out_len = len;
++    *bytes_sent = len;
+ 
+     return ret;
+ }
+@@ -1129,12 +1143,16 @@ pending_queue(const struct domain *d, st
+     if ( !ent )
+         return -ENOMEM;
+ 
++    argo_dprintk("Adding entry with domid %d and len %d\n", src_id, len);
++
+     ent->len = len;
+     ent->domain_id = src_id;
+     ent->ring_info = ring_info;
+ 
+-    if ( ring_info->id.partner_id == XEN_ARGO_DOMID_ANY )
++    if ( ring_info->id.partner_id == XEN_ARGO_DOMID_ANY ) {
++        argo_dprintk("Adding entry to wildcard list\n");
+         wildcard_pending_list_insert(src_id, ent);
++    }
+     list_add(&ent->node, &ring_info->pending);
+     ring_info->npending++;
+ 
+@@ -1149,9 +1167,16 @@ pending_requeue(const struct domain *d,
+ 
+     ASSERT(LOCKING_L3(d, ring_info));
+ 
++    argo_dprintk("Entering pending_requeue with len %d\n", len);
++
++    argo_dprintk("Currently pending entries:\n");
+     /* List structure is not modified here. Update len in a match if found. */
+     list_for_each_entry(ent, &ring_info->pending, node)
+     {
++        argo_dprintk("domid: %d\n", ent->domain_id);
++        argo_dprintk("len: %d\n", ent->len);
++        argo_dprintk("\n");
++
+         if ( ent->domain_id == src_id )
+         {
+             /*
+@@ -2201,7 +2226,9 @@ sendv(struct domain *src_d, xen_argo_add
+     struct argo_ring_id src_id;
+     struct argo_ring_info *ring_info;
+     int ret = 0;
+-    unsigned long len = 0;
++    unsigned long bytes_sent = 0;
++    unsigned long msg_len = 0;
++    uint32_t retry = 0;
+ 
+     argo_dprintk("sendv: (%u:%x)->(%u:%x) niov:%u type:%x\n",
+                  src_addr->domain_id, src_addr->aport, dst_addr->domain_id,
+@@ -2281,12 +2308,14 @@ sendv(struct domain *src_d, xen_argo_add
+         spin_lock(&ring_info->L3_lock);
+ 
+         ret = ringbuf_insert(dst_d, ring_info, &src_id, iovs, niov,
+-                             message_type, &len);
++                             message_type, &bytes_sent, &msg_len);
++
+         if ( ret == -EAGAIN )
+         {
+             argo_dprintk("argo_ringbuf_sendv failed, EAGAIN\n");
++            retry = 1;
+             /* requeue to issue a notification when space is there */
+-            ret = pending_requeue(dst_d, ring_info, src_id.domain_id, len);
++            ret = pending_requeue(dst_d, ring_info, src_id.domain_id, msg_len);
+         }
+ 
+         spin_unlock(&ring_info->L3_lock);
+@@ -2303,7 +2332,10 @@ sendv(struct domain *src_d, xen_argo_add
+     if ( dst_d )
+         put_domain(dst_d);
+ 
+-    return ( ret < 0 ) ? ret : len;
++    if ( retry )
++        return -EAGAIN;
++
++    return ( ret < 0 ) ? ret : bytes_sent;
+ }
+ 
+ long
